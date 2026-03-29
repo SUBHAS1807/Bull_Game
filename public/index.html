@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bailgada Sharyat - Digital Draw System</title>
+    <link rel="icon" type="image/jpeg" href="logo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container navbar">
+            <a href="/" class="logo">
+                <img src="logo.jpeg" alt="bull" width="90" height="90" style="border-radius: 50%;" >
+                बैलगाडा शर्यत<span>OFFICIAL</span>
+            </a>
+            <button class="hamburger" id="hamburgerBtn" onclick="toggleMenu()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#events" onclick="closeMenu()" data-i18n="true" data-en="Upcoming Events" data-mr="आगामी कार्यक्रम">आगामी कार्यक्रम</a></li>
+                <li><a href="#about-section" onclick="closeMenu()" data-i18n="true" data-en="About Us" data-mr="आमच्याबद्दल">आमच्याबद्दल</a></li>
+                <li><a href="#search" onclick="closeMenu()" data-i18n="true" data-en="Search Ticket" data-mr="तिकीट शोधा">तिकीट शोधा</a></li>
+                <li><a href="#results-section" onclick="closeMenu()" class="btn btn-primary" style="padding: 5px 15px; color:white;" data-i18n="true" data-en="Results" data-mr="निकाल">निकाल</a></li>
+                <li style="display: flex; align-items: center;">
+                    <a href="https://www.instagram.com/digital_baigadasharyat?igsh=MWxrNzg5am1ubnFrMg==" target="_blank" rel="noopener noreferrer" style="color: #E1306C; display: flex; align-items: center; padding: 0 10px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Follow us on Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                </li>
+                <li><button id="langToggleBtn" onclick="toggleLanguage()" class="lang-toggle"></button></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- News Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker-item" id="newsTicker">
+            Loading latest updates...
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content container">
+            <h1 class="text-primary" data-i18n="true" data-en="Experience the Speed, Feel the Thrill of the Race" data-mr="परंपरेचा वेग, बैलगाडा शर्यतीचा थरार अनुभव करा">परंपरेचा वेग, बैलगाडा शर्यतीचा थरार अनुभव करा</h1>
+            <p data-i18n="true" data-en="The official platform for Bullock Cart Racing. Check upcoming events, search tickets, get live updates and official results. Your trusted place to experience tradition, speed, and excitement." data-mr="बैलगाडा शर्यतीसाठी अधिकृत प्लॅटफॉर्म. येथे आगामी कार्यक्रम, तिकीट शोध, लाईव्ह अपडेट्स आणि अधिकृत निकाल पाहा. परंपरा, वेग आणि उत्साह अनुभवण्यासाठी तुमचे विश्वासार्ह ठिकाण.">बैलगाडा शर्यतीसाठी अधिकृत प्लॅटफॉर्म. येथे आगामी कार्यक्रम, तिकीट शोध, लाईव्ह अपडेट्स आणि अधिकृत निकाल पाहा. परंपरा, वेग आणि उत्साह अनुभवण्यासाठी तुमचे विश्वासार्ह ठिकाण.</p>
+            <a href="#events" class="btn btn-primary" data-i18n="true" data-en="Register Now" data-mr="आत्ताच नोंदणी करा">आत्ताच नोंदणी करा</a>
+        </div>
+    </section>
+
+    <!-- About Us Section -->
+    <section id="about-section" class="container" style="margin-top: 50px; margin-bottom: 50px; background: rgba(255,255,255,0.02); padding: 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        <h2 class="section-title text-center text-primary" data-i18n="true" data-en="About Us" data-mr="आमच्याबद्दल">आमच्याबद्दल</h2>
+        
+        <div style="max-width: 900px; margin: 0 auto; line-height: 1.8; color: var(--text-light); font-size: 1.05rem;">
+            <p style="margin-bottom: 15px;" data-i18n="true" 
+               data-en="Our 'Bailgada Sharyat' website has been created to provide all race-related information in one place." 
+               data-mr="आमची 'बैलगाडा शर्यत' वेबसाईट ही शर्यतीशी संबंधित सर्व माहिती एकाच ठिकाणी उपलब्ध करून देण्यासाठी तयार करण्यात आली आहे.">
+               आमची 'बैलगाडा शर्यत' वेबसाईट ही शर्यतीशी संबंधित सर्व माहिती एकाच ठिकाणी उपलब्ध करून देण्यासाठी तयार करण्यात आली आहे.
+            </p>
+            
+            <p style="margin-bottom: 15px;" data-i18n="true" 
+               data-en="On this platform, you can access details of various bullock cart races, dates, locations, registration processes, and utilize our digital draw system." 
+               data-mr="या प्लॅटफॉर्मवर तुम्ही विविध बैलगाडा शर्यतींची माहिती, तारीख, ठिकाण, नोंदणी प्रक्रिया आणि डिजिटल ड्रॉ प्रणाली यांचा उपयोग करू शकता.">
+               या प्लॅटफॉर्मवर तुम्ही विविध बैलगाडा शर्यतींची माहिती, तारीख, ठिकाण, नोंदणी प्रक्रिया आणि डिजिटल ड्रॉ प्रणाली यांचा उपयोग करू शकता.
+            </p>
+            
+            <p style="margin-bottom: 25px; font-weight: 600; color: var(--primary);" data-i18n="true" 
+               data-en="Our goal is to make traditional bullock cart racing modern and transparent." 
+               data-mr="आमचे उद्दिष्ट म्हणजे पारंपारिक बैलगाडा शर्यतीला आधुनिक आणि पारदर्शक बनवणे.">
+               आमचे उद्दिष्ट म्हणजे पारंपारिक बैलगाडा शर्यतीला आधुनिक आणि पारदर्शक बनवणे.
+            </p>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 30px; margin-top: 30px;">
+                <!-- Benefits Box -->
+                <div style="flex: 1 1 300px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 8px; border-left: 4px solid var(--success);">
+                    <h4 style="color: var(--success); margin-bottom: 15px; font-size: 1.1rem;" data-i18n="true" data-en="Due to the Digital System:" data-mr="डिजिटल प्रणालीमुळे:">डिजिटल प्रणालीमुळे:</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                            <span>✔️</span> <span data-i18n="true" data-en="Registration becomes simple and fast" data-mr="नोंदणी सोपी होते">नोंदणी सोपी होते</span>
+                        </li>
+                        <li style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                            <span>✔️</span> <span data-i18n="true" data-en="Draws remain completely transparent" data-mr="ड्रॉ पूर्णपणे पारदर्शक राहतो">ड्रॉ पूर्णपणे पारदर्शक राहतो</span>
+                        </li>
+                        <li style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span>✔️</span> <span data-i18n="true" data-en="Ensures high convenience for both organizers and participants" data-mr="आयोजक आणि सहभागी दोघांनाही सोय होते">आयोजक आणि सहभागी दोघांनाही सोय होते</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Objectives Box -->
+                <div style="flex: 1 1 300px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 8px; border-left: 4px solid var(--primary);">
+                    <h4 style="color: var(--primary); margin-bottom: 15px; font-size: 1.1rem;" data-i18n="true" data-en="Our Objectives:" data-mr="आमचे उद्दिष्ट:">आमचे उद्दिष्ट:</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                            <span>✔️</span> <span data-i18n="true" data-en="Digitalize bullock cart racing" data-mr="बैलगाडा शर्यतीला डिजिटल बनवणे">बैलगाडा शर्यतीला डिजिटल बनवणे</span>
+                        </li>
+                        <li style="margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                            <span>✔️</span> <span data-i18n="true" data-en="Provide a transparent draw mechanism" data-mr="पारदर्शक ड्रॉ प्रणाली उपलब्ध करणे">पारदर्शक ड्रॉ प्रणाली उपलब्ध करणे</span>
+                        </li>
+                        <li style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span>✔️</span> <span data-i18n="true" data-en="Centralize all race information securely" data-mr="सर्व माहिती एकाच ठिकाणी देणे">सर्व माहिती एकाच ठिकाणी देणे</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <p style="margin-top: 30px; text-align: center; color: var(--text-muted); font-style: italic;" data-i18n="true" 
+               data-en="We are striving to build a reliable and useful platform for all bullock cart racing lovers." 
+               data-mr="आम्ही बैलगाडा प्रेमींसाठी एक विश्वासार्ह आणि उपयोगी प्लॅटफॉर्म तयार करण्याचा प्रयत्न करत आहोत.">
+               आम्ही बैलगाडा प्रेमींसाठी एक विश्वासार्ह आणि उपयोगी प्लॅटफॉर्म तयार करण्याचा प्रयत्न करत आहोत.
+            </p>
+        </div>
+    </section>
+
+    <!-- Upcoming Events -->
+    <section id="events" class="container">
+        <h2 class="section-title" data-i18n="true" data-en="Upcoming Events" data-mr="आगामी कार्यक्रम">आगामी कार्यक्रम</h2>
+        <div class="grid" id="events-grid">
+            <!-- Events injected dynamically via JS -->
+            <p>Loading events...</p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section id="search" class="container">
+        <h2 class="section-title" data-i18n="true" data-en="Search Digital Ticket" data-mr="डिजिटल तिकीट शोधा">डिजिटल तिकीट शोधा</h2>
+        <div class="card registration-card" style="text-align: center;">
+            <p style="margin-bottom: 20px; color: var(--text-muted);" data-i18n="true" data-en="Enter your Ticket ID, Name, or Mobile Number to view your race details." data-mr="तुमचा तिकीट आयडी, नाव किंवा मोबाईल नंबर टाकून तुमच्या शर्यतीचे तपशील पाहा.">तुमचा तिकीट आयडी, नाव किंवा मोबाईल नंबर टाकून तुमच्या शर्यतीचे तपशील पाहा.</p>
+            <div class="form-group">
+                <input type="text" id="searchInput" class="form-control" placeholder="E.g., TKT-123456 or 9876543210" data-i18n="true" data-en="E.g., TKT-123456 or 9876543210" data-mr="उदा., TKT-123456 किंवा 9876543210">
+            </div>
+            <button class="btn btn-primary" onclick="searchTicket()" data-i18n="true" data-en="Search Ticket" data-mr="तिकीट शोधा">तिकीट शोधा</button>
+            <div id="searchResults" style="margin-top: 20px;"></div>
+        </div>
+    </section>
+
+    <!-- Official Results Section -->
+    <section id="results-section" class="container text-center" style="margin-top: 50px; margin-bottom: 50px;">
+        <h2 style="margin-bottom: 20px;" class="text-primary" data-i18n="true" data-en="🏆 Official Results" data-mr="🏆 अधिकृत निकाल">🏆 अधिकृत निकाल</h2>
+        <div class="grid" id="results-grid"></div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery-section" class="container text-center" style="margin-top: 50px; margin-bottom: 50px;">
+        <h2 style="margin-bottom: 20px;" class="text-primary" data-i18n="true" data-en="📸 Game Highlights" data-mr="📸 खेळाचे हायलाइट्स">📸 खेळाचे हायलाइट्स</h2>
+        <div id="public-gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; text-align: left;">
+            <!-- Rendered via JS -->
+            <p class="text-secondary" style="grid-column: 1/-1;">Loading highlights...</p>
+        </div>
+    </section>
+
+    <!-- Sponsors Section -->
+    <section id="sponsors-section" class="container text-center" style="margin-top: 50px; margin-bottom: 50px;">
+        <h2 style="margin-bottom: 20px;" class="text-primary" data-i18n="true" data-en="🤝 Our Sponsors" data-mr="🤝 आमचे प्रायोजक">🤝 आमचे प्रायोजक</h2>
+        <div id="public-sponsors-grid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-top: 30px;">
+            <!-- Rendered via JS -->
+            <p class="text-secondary" style="width:100%; text-align:center;">Loading sponsors...</p>
+        </div>
+    </section>
+
+    <!-- Registration Modal -->
+    <div id="regModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 class="text-secondary" style="margin-bottom: 20px;" data-i18n="true" data-en="Registration" data-mr="नोंदणी">नोंदणी</h2>
+            <form id="regForm" onsubmit="handleRegistration(event)">
+                <input type="hidden" id="regEventId">
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Full Name" data-mr="पूर्ण नाव">पूर्ण नाव</label>
+                    <input type="text" id="regName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Mobile Number" data-mr="मोबाईल नंबर">मोबाईल नंबर</label>
+                    <input type="tel" id="regMobile" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Village" data-mr="गाव">गाव</label>
+                    <input type="text" id="regVillage" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Bull Name 1" data-mr="बैलाचे नाव १">बैलाचे नाव १</label>
+                    <input type="text" id="regBull1" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Bull Name 2" data-mr="बैलाचे नाव २">बैलाचे नाव २</label>
+                    <input type="text" id="regBull2" class="form-control" required>
+                </div>
+                <!-- Mock Payment details -->
+                <div class="form-group" style="background: rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--success);">
+                    <label style="color: var(--success); text-align: left; font-size: 1.1rem; font-weight: bold; margin-bottom: 10px;" id="regAmountLabel">पेमेंट डेमो</label>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; color: #555;">
+                        <span data-i18n="true" data-en="Base Ticket Fee:" data-mr="मूळ तिकीट शुल्क:">मूळ तिकीट शुल्क:</span>
+                        <strong id="regBasePrice">₹0</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; color: #555;">
+                        <span data-i18n="true" data-en="Platform Fee:" data-mr="प्लॅटफॉर्म फी:">प्लॅटफॉर्म फी:</span>
+                        <strong id="regPlatformFee">₹0</strong>
+                    </div>
+                    <hr style="border: none; border-top: 1px dashed rgba(46, 204, 113, 0.5); margin: 10px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; color: #000;">
+                        <strong data-i18n="true" data-en="Total Payable:" data-mr="एकूण देय रक्कम:">एकूण देय रक्कम:</strong>
+                        <strong id="regTotalAmount" style="color: var(--success);">₹0</strong>
+                    </div>
+
+                    <select class="form-control" id="regPayment" required>
+                        <option value="UPI">UPI (Google Pay / PhonePe)</option>
+                        <option value="CARD">Credit / Debit Card</option>
+                    </select>
+                </div>
+                <div id="paymentModeIndicator" style="text-align:center; margin-bottom: 10px;"></div>
+                <button type="submit" class="btn btn-primary" id="btnRegSubmit" style="width: 100%; margin-top: 15px; font-size: 1.1rem;" data-i18n="true" data-en="Register" data-mr="नोंदणी करा">नोंदणी करा</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ticket Modal (Success) -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTicketModal()">&times;</span>
+            <h2 class="text-success" style="margin-bottom: 20px;" data-i18n="true" data-en="Registration Successful!" data-mr="नोंदणी यशस्वी!">नोंदणी यशस्वी!</h2>
+            <div id="ticketView" style="margin-top: 20px; padding: 20px; background: white; color: black; border-radius: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- Footer / Legal Disclaimer -->
+    <footer style="margin-top: 40px; padding: 30px 20px 15px; border-top: 1px solid rgba(255,255,255,0.1); background: #050508; width: 100%;">
+        <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+            
+            <h3 style="color: var(--text-light); font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span data-i18n="true" data-en="Legal Disclaimer" data-mr="कायदेशीर अस्वीकरण">Legal Disclaimer</span>
+            </h3>
+            
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;" data-i18n="true" data-en="All events listed on this website are organized by independent local committees. We are not the direct organizers of any event." data-mr="या वेबसाईटवर सूचीबद्ध केलेले सर्व कार्यक्रम स्वतंत्र स्थानिक समित्यांद्वारे आयोजित केले जातात. आम्ही कोणत्याही कार्यक्रमाचे थेट आयोजक नाही.">
+                All events listed on this website are organized by independent local committees. We are not the direct organizers of any event.
+            </p>
+            
+            <p style="color: rgba(255,255,255,0.4); font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px; font-style: italic;" data-i18n="true" data-en="This platform is used for event listing and participant registration only." data-mr="हे प्लॅटफॉर्म केवळ कार्यक्रम सूची आणि सहभागींच्या नोंदणीसाठी वापरले जाते.">
+                This platform is used for event listing and participant registration only.
+            </p>
+            
+            <p style="margin-bottom: 15px;">
+                <a href="#terms" style="color: var(--text-muted); text-decoration: underline; font-size: 0.85rem; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" data-i18n="true" data-en="Terms & Conditions" data-mr="अटी आणि शर्ती">Terms & Conditions</a>
+            </p>
+            
+            <div style="padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); font-size: 0.8rem;">
+                &copy; <span id="currentYear"></span> Bailgada Sharyat Platform. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    <script>
+    document.getElementById('currentYear').innerText = new Date().getFullYear();
+    function toggleMenu() {
+        const nav = document.getElementById('navLinks');
+        const btn = document.getElementById('hamburgerBtn');
+        nav.classList.toggle('nav-open');
+        btn.classList.toggle('active');
+    }
+    function closeMenu() {
+        const nav = document.getElementById('navLinks');
+        const btn = document.getElementById('hamburgerBtn');
+        nav.classList.remove('nav-open');
+        btn.classList.remove('active');
+    }
+    </script>
+
+    <script src="lang.js?v=2"></script>
+    <script src="app.js?v=2.2"></script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Digital Draw System</title>
+    <link rel="icon" type="image/jpeg" href="logo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { background-color: #0d0d12; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 30px; }
+        .sidebar { background: var(--bg-card); height: 100vh; padding: 20px; position: fixed; width: 250px; left: 0; top: 0; border-right: 1px solid var(--primary); overflow-y: auto; z-index: 200; }
+        .main-content { margin-left: 270px; padding: 40px; }
+        .sidebar .logo { font-size: 1.5rem; color: var(--primary); font-weight: 900; margin-bottom: 40px; display: block; text-decoration: none;}
+        .sidebar .admin-nav-links { list-style: none; padding: 0; flex-direction: column !important; display: flex !important; gap: 8px; opacity: 1 !important; visibility: visible !important; justify-content: flex-start !important; flex-wrap: nowrap !important; }
+        .sidebar .admin-nav-links li { display: block !important; width: 100%; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sidebar .admin-nav-links li a { color: #ffffff !important; padding: 15px 20px; display: block !important; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.1rem; background: rgba(255,255,255,0.05); transition: 0.2s; }
+        .sidebar .admin-nav-links li a:hover, .sidebar .admin-nav-links li a.active { background: var(--primary) !important; color: #000 !important; }
+        
+        .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        .admin-table th { color: var(--primary); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        
+        /* Admin hamburger - hidden on desktop */
+        .admin-hamburger {
+            display: none;
+            position: fixed;
+            top: 12px;
+            right: 15px;
+            z-index: 300;
+            background: var(--bg-card);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .admin-hamburger span {
+            display: block; width: 22px; height: 2.5px;
+            background: var(--primary); border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        .admin-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 5px); }
+        .admin-hamburger.active span:nth-child(2) { opacity: 0; }
+        .admin-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -5px); }
+
+        /* Mobile overlay backdrop */
+        .admin-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 190;
+        }
+        .admin-overlay.visible { display: block; }
+
+        /* PDF Excel Print Styles */
+        .pdf-excel-mode { background-color: #ffffff !important; color: #000000 !important; padding: 20px !important; font-family: sans-serif !important; }
+        .pdf-excel-mode * { color: #000000 !important; box-shadow: none !important; }
+        .pdf-excel-mode .admin-table { border: 2px solid #000000 !important; }
+        .pdf-excel-mode .admin-table th, .pdf-excel-mode .admin-table td { border: 1px solid #000000 !important; padding: 10px !important; text-transform: none !important; font-size: 14px !important; background: transparent !important; }
+        .pdf-excel-mode .admin-table th { font-weight: bold !important; background-color: #f0f0f0 !important; text-align: center !important; }
+        .pdf-excel-mode .badge { background: transparent !important; color: #000000 !important; padding: 0 !important; font-size: 14px !important; }
+
+        /* ============ ADMIN MOBILE RESPONSIVE ============ */
+        @media (max-width: 768px) {
+            /* Show hamburger */
+            .admin-hamburger { display: flex; }
+
+            /* Sidebar: hidden by default, slide from left */
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                width: 260px;
+                height: 100vh;
+                padding: 20px 15px;
+                transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 5px 0 30px rgba(0,0,0,0.5);
+                border-right: 1px solid var(--primary);
+            }
+            .sidebar.open { left: 0 !important; display: block !important; }
+
+            .sidebar .logo {
+                font-size: 1.2rem;
+                margin-bottom: 20px;
+                padding-right: 40px; /* space for close */
+            }
+
+            .sidebar .admin-nav-links {
+                flex-direction: column;
+                gap: 5px;
+                padding-top: 10px;
+            }
+
+            .sidebar .admin-nav-links li a {
+                padding: 16px 20px;
+                font-size: 1.15rem;
+                color: #ffffff !important; 
+                display: block !important;
+                background: rgba(255,255,255,0.08);
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* Main content: full width */
+            .main-content {
+                margin-left: 0 !important;
+                padding: 15px;
+                padding-top: 60px; /* space for hamburger */
+                width: 100%;
+            }
+
+            /* Admin header */
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+            .admin-header div { width: 100%; }
+            .admin-header h2 { font-size: 1.3rem; }
+
+            /* Cards */
+            .card { margin-bottom: 15px; }
+            .card-body { padding: 15px; }
+
+            /* Forms - stack elements */
+            form[onsubmit="handleCreateEvent(event)"] { flex-direction: column; }
+            .form-group { margin-bottom: 12px; }
+            .form-control { font-size: 16px !important; } /* prevent iOS zoom */
+
+            /* Buttons */
+            .admin-controls { flex-direction: column; gap: 10px; }
+            .admin-controls .btn { width: 100%; }
+            .btn { padding: 10px 16px; font-size: 0.9rem; }
+
+            /* Tables - horizontal scrollable */
+            .card-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .admin-table { min-width: 600px; }
+            .admin-table th, .admin-table td { padding: 8px 10px; font-size: 0.85rem; white-space: nowrap; }
+
+            /* Section titles */
+            h3 { font-size: 1.2rem; }
+
+            /* Login section */
+            #login-section {
+                margin: 60px 10px !important;
+                padding: 25px !important;
+                max-width: 100% !important;
+            }
+
+            /* Payment Gateway specific */
+            #payment > div:first-child { padding: 20px !important; border-radius: 12px !important; }
+            #payment h2 { font-size: 1.4rem !important; }
+            #razorpayStatusBadge .badge { font-size: 0.85rem !important; padding: 8px 14px !important; }
+
+            /* Publish results modal */
+            .modal-content { width: 95% !important; padding: 20px !important; margin: 3% auto !important; }
+
+            /* Select dropdowns */
+            select.form-control { font-size: 16px !important; }
+
+            /* Stat badges / flex items */
+            .admin-header .badge { font-size: 0.75rem; padding: 5px 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .main-content { padding: 10px; padding-top: 55px; }
+            .admin-header h2 { font-size: 1.1rem; }
+            h3 { font-size: 1rem; }
+            .btn { font-size: 0.85rem; padding: 8px 12px; }
+            .admin-table { min-width: 500px; }
+            .admin-table th, .admin-table td { padding: 6px 8px; font-size: 0.8rem; }
+            #payment > div:first-child { padding: 15px !important; }
+            #payment h2 { font-size: 1.2rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Hamburger Button -->
+    <button class="admin-hamburger" id="adminHamburger" onclick="toggleAdminSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+    <!-- Mobile Overlay -->
+    <div class="admin-overlay" id="adminOverlay" onclick="closeAdminSidebar()"></div>
+
+    <div class="sidebar" id="adminSidebar">
+        <a href="#" onclick="showSection('dashboard'); closeAdminSidebar(); return false;" class="logo" style="display: flex !important; align-items: center; gap: 10px;">⚙️ ॲडमिन पॅनेल</a>
+        <ul class="admin-nav-links">
+            <li><a href="#" class="active" onclick="showSection('dashboard'); closeAdminSidebar();" data-i18n="true" data-en="Dashboard" data-mr="डॅशबोर्ड">डॅशबोर्ड</a></li>
+            <li><a href="#" onclick="showSection('events'); closeAdminSidebar();" data-i18n="true" data-en="Manage Events" data-mr="इव्हेंट व्यवस्थापित करा">इव्हेंट व्यवस्थापित करा</a></li>
+            <li><a href="#" onclick="showSection('participants'); closeAdminSidebar();" data-i18n="true" data-en="Participants List" data-mr="सहभागी यादी">सहभागी यादी</a></li>
+            <li><a href="#" onclick="showSection('ticker'); closeAdminSidebar();" data-i18n="true" data-en="News Ticker" data-mr="न्यूज टिकर">न्यूज टिकर</a></li>
+            <li><a href="#" onclick="showSection('gallery'); closeAdminSidebar();" data-i18n="true" data-en="Gallery Management" data-mr="गॅलरी व्यवस्थापन">गॅलरी व्यवस्थापन</a></li>
+            <li><a href="#" onclick="showSection('sponsors'); closeAdminSidebar();" data-i18n="true" data-en="Sponsors" data-mr="प्रायोजक">प्रायोजक</a></li>
+            <li><a href="#" onclick="showSection('payment'); closeAdminSidebar();" data-i18n="true" data-en="Payment Configuration" data-mr="पेमेंट कॉन्फिगरेशन">पेमेंट कॉन्फिगरेशन</a></li>
+            <li><a href="#" onclick="showSection('settings'); closeAdminSidebar();" data-i18n="true" data-en="Settings" data-mr="सेटिंग्ज">सेटिंग्ज</a></li>
+            <li style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <a href="#" onclick="logout()" style="background: rgba(229, 57, 53, 0.2); color: var(--secondary) !important;" data-i18n="true" data-en="Logout" data-mr="लॉगआउट">लॉगआउट</a>
+            </li>
+            <li><button id="langToggleBtn" onclick="toggleLanguage()" class="lang-toggle" style="margin-top: 10px;"></button></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- Login Section -->
+        <section id="login-section" style="max-width: 400px; margin: 100px auto; padding: 40px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--primary); display: block;">
+            <h2 style="text-align: center; color: var(--primary); margin-bottom: 30px;" data-i18n="true" data-en="Admin Login" data-mr="ॲडमिन लॉगिन">ॲडमिन लॉगिन</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Username" data-mr="वापरकर्तानाव">वापरकर्तानाव</label>
+                    <input type="text" id="adminUser" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="Password" data-mr="पासवर्ड">पासवर्ड</label>
+                    <input type="password" id="adminPass" class="form-control" required>
+                </div>
+                <button type="submit" id="btnLogin" class="btn btn-primary" style="width: 100%; margin-top: 20px;" data-i18n="true" data-en="Login" data-mr="लॉगिन करा">लॉगिन करा</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="index.html" style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="true" data-en="← Back to Website" data-mr="← वेबसाईटवर परत जा">← वेबसाईटवर परत जा</a>
+            </div>
+        </section>
+
+        <!-- All Admin Sections Protected -->
+        <div id="protected-admin-content" style="display:none;">
+            <div class="admin-header">
+            <h2 data-i18n="true" data-en="Sharyat Controller" data-mr="शर्यत नियंत्रक">शर्यत नियंत्रक</h2>
+            <div>
+                <span class="badge badge-success" data-i18n="true" data-en="Live Server" data-mr="लाईव्ह सर्व्हर">लाईव्ह सर्व्हर</span>
+                <span class="badge badge-warning" data-i18n="true" data-en="Admin Mode" data-mr="ॲडमिन मोड">ॲडमिन मोड</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="page-section" style="padding:0; display:none;">
+            <h3 data-i18n="true" data-en="Quick Actions" data-mr="त्वरित क्रिया">त्वरित क्रिया</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="true" data-en="Manage registrations, trigger draws, and publish results." data-mr="नोंदणी व्यवस्थापित करा, ड्रॉ करा आणि निकाल जाहीर करा.">नोंदणी व्यवस्थापित करा, ड्रॉ करा आणि निकाल जाहीर करा.</p>
+            
+            <div class="card" style="margin-bottom: 30px; border-top: 4px solid var(--success);">
+                <div class="card-body">
+                    <h3 style="margin-bottom: 15px;" data-i18n="true" data-en="Create New Event" data-mr="नवीन कार्यक्रम तयार करा">नवीन कार्यक्रम तयार करा</h3>
+                    <form onsubmit="handleCreateEvent(event)" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="newEventName" class="form-control" placeholder="कार्यक्रमाचे नाव" required style="flex-grow: 1;" data-i18n="true" data-en="Event Name" data-mr="कार्यक्रमाचे नाव">
+                        <input type="date" id="newEventDate" class="form-control" required style="width: 150px;">
+                        <input type="text" id="newEventOrganizer" class="form-control" placeholder="आयोजक समिती" required style="flex-grow: 1;" data-i18n="true" data-en="Organizer Committee" data-mr="आयोजक समिती">
+                        <input type="text" id="newEventLocation" class="form-control" placeholder="ठिकाण" required style="width: 150px;" data-i18n="true" data-en="Location" data-mr="ठिकाण">
+                        <input type="number" id="newEventTracks" class="form-control" placeholder="एकूण ट्रॅक्स" required style="width: 120px;" min="1" data-i18n="true" data-en="Max Tracks" data-mr="एकूण ट्रॅक्स">
+                        <input type="number" id="newEventPrice" class="form-control" placeholder="शुल्क (₹)" required style="width: 120px;" min="0" data-i18n="true" data-en="Price (₹)" data-mr="शुल्क (₹)">
+                        <div style="width: 100%;">
+                            <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 5px; display:block;" data-i18n="true" data-en="Event Photo (JPG/JPEG format only)" data-mr="कार्यक्रमाचा फोटो (फक्त JPG/JPEG)">कार्यक्रमाचा फोटो (फक्त JPG/JPEG)</label>
+                            <input type="file" id="newEventImage" class="form-control" accept=".jpg, .jpeg" style="width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnCreateEvent" style="width: 100%;" data-i18n="true" data-en="Create Event" data-mr="कार्यक्रम तयार करा">कार्यक्रम तयार करा</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="form-group" style="max-width: 400px;">
+                <label data-i18n="true" data-en="Select Event Context" data-mr="कार्यक्रम निवडा">कार्यक्रम निवडा</label>
+                <select id="adminEventSelect" class="form-control" onchange="loadAdminData()"></select>
+            </div>
+
+            <div class="card" style="margin-bottom: 30px; border-top: 4px solid var(--primary);">
+                <div class="card-body">
+                    <h3 style="margin-bottom: 15px;" data-i18n="true" data-en="Event Control Center" data-mr="कार्यक्रम नियंत्रण केंद्र">कार्यक्रम नियंत्रण केंद्र</h3>
+                    <div class="admin-controls">
+                        <button class="btn btn-primary" onclick="lockRegistration()" id="btnLock" data-i18n="true" data-en="🔒 Lock Registration" data-mr="🔒 नोंदणी बंद करा">🔒 नोंदणी बंद करा</button>
+                        <button class="btn" style="background: var(--success);" onclick="triggerDraw()" id="btnDraw" data-i18n="true" data-en="🎲 Trigger Random Draw" data-mr="🎲 रँडम ड्रॉ करा">🎲 रँडम ड्रॉ करा</button>
+                        <button class="btn" style="background: #2196F3;" onclick="openResultsModal()" id="btnResults" data-i18n="true" data-en="🏆 Publish Results" data-mr="🏆 निकाल जाहीर करा">🏆 निकाल जाहीर करा</button>
+                    </div>
+                    <p id="eventStatusText" style="font-weight: bold; color: var(--primary);"></p>
+                </div>
+            </div>
+
+            <!-- Participants Table -->
+            <div class="card" style="border-top: 4px solid var(--secondary);">
+                <div class="card-body" style="overflow-x: auto;">
+                    <h3 data-i18n="true" data-en="All Participants" data-mr="सर्व सहभागी">सर्व सहभागी</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="true" data-en="Name" data-mr="नाव">नाव</th>
+                                <th data-i18n="true" data-en="Mobile" data-mr="मोबाईल">मोबाईल</th>
+                                <th data-i18n="true" data-en="Bulls" data-mr="बैल">बैल</th>
+                                <th data-i18n="true" data-en="Payment" data-mr="पेमेंट">पेमेंट</th>
+                                <th data-i18n="true" data-en="TKT ID" data-mr="तिकीट आयडी">तिकीट आयडी</th>
+                                <th data-i18n="true" data-en="Round & Track" data-mr="फेरी व ट्रॅक">फेरी व ट्रॅक</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminParticipantsTable">
+                            <tr><td colspan="6" style="text-align:center;">लोड होत आहे...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" class="page-section" style="padding:0; display:none;">
+            <h3 data-i18n="true" data-en="Manage Events" data-mr="कार्यक्रम व्यवस्थापित करा">कार्यक्रम व्यवस्थापित करा</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="true" data-en="List of all events created in the system." data-mr="सिस्टममध्ये तयार केलेल्या सर्व कार्यक्रमांची यादी.">सिस्टममध्ये तयार केलेल्या सर्व कार्यक्रमांची यादी.</p>
+            <div class="card" style="border-top: 4px solid var(--primary);">
+                <div class="card-body" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead><tr>
+                            <th data-i18n="true" data-en="Event Name" data-mr="कार्यक्रमाचे नाव">कार्यक्रमाचे नाव</th>
+                            <th data-i18n="true" data-en="Date" data-mr="तारीख">तारीख</th>
+                            <th data-i18n="true" data-en="Location" data-mr="ठिकाण">ठिकाण</th>
+                            <th data-i18n="true" data-en="Max Tracks" data-mr="एकूण ट्रॅक्स">एकूण ट्रॅक्स</th>
+                            <th data-i18n="true" data-en="Status" data-mr="स्थिती">स्थिती</th>
+                            <th data-i18n="true" data-en="Actions" data-mr="क्रिया">क्रिया</th>
+                        </tr></thead>
+                        <tbody id="allEventsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Participants Section -->
+        <section id="participants" class="page-section" style="padding:0; display:none;">
+            <h3 data-i18n="true" data-en="Participants List" data-mr="सहभागींची यादी">सहभागींची यादी</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="true" data-en="View and filter all participants." data-mr="सर्व सहभागी पहा आणि फिल्टर करा.">सर्व सहभागी पहा आणि फिल्टर करा.</p>
+            <div class="card" style="border-top: 4px solid var(--secondary);">
+                <div class="card-body" id="printable-participants" style="overflow-x: auto; position: relative;">
+                    <div id="participants-top-bar" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                      <div>
+                          <label data-i18n="true" data-en="Filter by Event:" data-mr="कार्यक्रमानुसार फिल्टर करा:">कार्यक्रमानुसार फिल्टर करा:</label>
+                          <select id="filterEventSelect" class="form-control" style="max-width:300px; display:inline-block; margin-left: 10px;" onchange="loadAllParticipants()"></select>
+                      </div>
+                      <button class="btn btn-primary" id="btnDownloadPDF" onclick="downloadParticipantsPDF()" style="background:var(--success); display:flex; align-items:center; gap:8px;">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                          <span data-i18n="true" data-en="Download PDF" data-mr="पीडीएफ डाउनलोड करा">पीडीएफ डाउनलोड करा</span>
+                      </button>
+                    </div>
+                    <table class="admin-table">
+                        <thead><tr>
+                            <th data-i18n="true" data-en="Name" data-mr="नाव">नाव</th>
+                            <th data-i18n="true" data-en="Mobile" data-mr="मोबाईल">मोबाईल</th>
+                            <th data-i18n="true" data-en="Bulls" data-mr="बैल">बैल</th>
+                            <th data-i18n="true" data-en="Payment" data-mr="पेमेंट">पेमेंट</th>
+                            <th data-i18n="true" data-en="TKT ID" data-mr="तिकीट आयडी">तिकीट आयडी</th>
+                            <th data-i18n="true" data-en="Round & Track" data-mr="फेरी व ट्रॅक">फेरी व ट्रॅक</th>
+                        </tr></thead>
+                        <tbody id="allParticipantsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Ticker Section -->
+        <section id="ticker" class="page-section" style="padding:0; display:none;">
+            <h3 data-i18n="true" data-en="News Ticker Management" data-mr="ताज्या बातम्या व्यवस्थापन">ताज्या बातम्या व्यवस्थापन</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="true" data-en="Update the live scrolling news banner on the main website." data-mr="मुख्य वेबसाईटवर दिसणाऱ्या ताज्या बातम्या अपडेट करा.">मुख्य वेबसाईटवर दिसणाऱ्या ताज्या बातम्या अपडेट करा.</p>
+            <div class="card" style="border-top: 4px solid var(--primary);">
+                <div class="card-body">
+                    <form onsubmit="handleUpdateTicker(event)">
+                        <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 5px; display:block;" data-i18n="true" data-en="Current Ticker Text" data-mr="सध्याची बातमी">सध्याची बातमी</label>
+                        <textarea id="adminTickerText" class="form-control" rows="3" required placeholder="येथे ताजी बातमी लिहा..." style="width:100%; margin-bottom: 15px;" data-i18n="true" data-en="Enter news ticker text here..." data-mr="येथे ताजी बातमी लिहा..."></textarea>
+                        <button type="submit" class="btn btn-primary" id="btnUpdateTicker" data-i18n="true" data-en="Update Ticker News" data-mr="बातमी अपडेट करा">बातमी अपडेट करा</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="page-section" style="padding:0; display:none;">
+            <h3 data-i18n="true" data-en="Game Highlights & Gallery" data-mr="खेळाचे हायलाइट्स आणि गॅलरी">खेळाचे हायलाइट्स आणि गॅलरी</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="true" data-en="Upload game photos and highlights to show on the main website." data-mr="मुख्य वेबसाईटवर दाखवण्यासाठी खेळाचे फोटो आणि हायलाइट्स अपलोड करा.">मुख्य वेबसाईटवर दाखवण्यासाठी खेळाचे फोटो आणि हायलाइट्स अपलोड करा.</p>
+            <div class="card" style="margin-bottom: 30px; border-top: 4px solid var(--secondary);">
+                <div class="card-body">
+                    <form onsubmit="handleAddHighlight(event)">
+                        <div class="form-group" style="max-width: 400px;">
+                            <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 5px; display:block;" data-i18n="true" data-en="Select Photo" data-mr="फोटो निवडा">फोटो निवडा</label>
+                            <input type="file" id="hlImage" class="form-control" accept=".jpg, .jpeg, .png" required style="width:100%;">
+                        </div>
+                        <div class="form-group" style="max-width: 400px;">
+                            <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 5px; display:block;" data-i18n="true" data-en="Caption / Description" data-mr="फोटोचे वर्णन">फोटोचे वर्णन</label>
+                            <input type="text" id="hlCaption" class="form-control" placeholder="उदा. शर्यतीचा अद्भुत क्षण" required data-i18n="true" data-en="e.g. Amazing race moment" data-mr="उदा. शर्यतीचा अद्भुत क्षण" style="width:100%;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnUploadHighlight" data-i18n="true" data-en="Upload Photo" data-mr="फोटो अपलोड करा">फोटो अपलोड करा</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card" style="border-top: 4px solid var(--primary);">
+                <div class="card-body">
+                    <h3 data-i18n="true" data-en="Uploaded Photos" data-mr="अपलोड केलेले फोटो">अपलोड केलेले फोटो</h3>
+                    <div id="adminGalleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <!-- dynamic images -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sponsors Section -->
+        <section id="sponsors" class="page-section" style="padding:0; display:none;">
+            <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
+                    <div style="flex: 1 1 300px;">
+                        <h2 style="color: #fff; margin-bottom: 10px; font-size: 2rem; display: flex; align-items: center; gap: 10px;" data-i18n="true" data-en="🤝 Manage Sponsors" data-mr="🤝 प्रायोजक व्यवस्थापन">🤝 प्रायोजक व्यवस्थापन</h2>
+                        <p style="color: rgba(255,255,255,0.8); font-size: 1rem;" data-i18n="true" data-en="Upload high-quality partner logos quickly and efficiently." data-mr="येथे प्रायोजकांचे लोगो जलद आणि अचूकपणे अपलोड करा.">येथे प्रायोजकांचे लोगो जलद आणि अचूकपणे अपलोड करा.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
+                <div class="card-body">
+                    <form onsubmit="handleAddSponsor(event)" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+                        <div style="flex: 1 1 250px;">
+                            <label style="color:#aaa; font-weight:bold; margin-bottom:8px; display:block;" data-i18n="true" data-en="Brand Logo (Image)" data-mr="लोगो (चित्र)">लोगो (चित्र)</label>
+                            <input type="file" id="sponsorImage" class="form-control" accept=".jpg, .jpeg, .png, .webp" required style="padding: 10px; background: rgba(0,0,0,0.2);">
+                        </div>
+                        <div style="flex: 1 1 250px;">
+                            <label style="color:#aaa; font-weight:bold; margin-bottom:8px; display:block;" data-i18n="true" data-en="Brand Name" data-mr="ब्रँडचे नाव">ब्रँडचे नाव</label>
+                            <input type="text" id="sponsorName" class="form-control" placeholder="उदा. बालाजी मोटर्स" required data-i18n="true" data-en="e.g. Balaji Motors" data-mr="उदा. बालाजी मोटर्स" style="padding: 10px; background: rgba(0,0,0,0.2);">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnUploadSponsor" style="background:#f39c12; color:#000; font-weight:bold; padding: 12px 30px; flex: 0 0 auto;" data-i18n="true" data-en="Add to Network" data-mr="प्रायोजक जोडा">प्रायोजक जोडा</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div style="border-radius: 12px; background: #16181f; padding: 25px; border: 1px solid rgba(255,255,255,0.05);">
+                <h3 style="margin-bottom: 20px; color: var(--primary); text-transform: uppercase; font-size: 1rem;" data-i18n="true" data-en="Current Official Sponsors" data-mr="सध्याचे अधिकृत प्रायोजक">सध्याचे अधिकृत प्रायोजक</h3>
+                <div id="adminSponsorsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+                    <!-- dynamic images -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="page-section" style="padding:0; display:none;">
+            <h3 data-i18n="true" data-en="Platform Settings" data-mr="प्लॅटफॉर्म सेटिंग्ज">प्लॅटफॉर्म सेटिंग्ज</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" data-i18n="true" data-en="Configure platform fees and other global settings." data-mr="प्लॅटफॉर्म फी आणि इतर ग्लोबल सेटिंग्ज कॉन्फिगर करा.">प्लॅटफॉर्म फी आणि इतर ग्लोबल सेटिंग्ज कॉन्फिगर करा.</p>
+            <div class="card" style="border-top: 4px solid #fdd835;">
+                <div class="card-body">
+                    <form onsubmit="handleUpdateSettings(event)">
+                        <div class="form-group" style="max-width: 300px;">
+                            <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 5px; display:block;" data-i18n="true" data-en="Platform Fee (%)" data-mr="प्लॅटफॉर्म फी (%)">प्लॅटफॉर्म फी (%)</label>
+                            <input type="number" step="0.1" min="0" id="adminFeePercent" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnUpdateSettings" data-i18n="true" data-en="Save Settings" data-mr="सेटिंग्ज सेव्ह करा">सेटिंग्ज सेव्ह करा</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payment Gateway Section -->
+        <section id="payment" class="page-section" style="padding:0; display:none;">
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(59,130,246,0.3);">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
+                    <div style="flex: 1 1 300px;">
+                        <h2 style="color: #fff; margin-bottom: 10px; font-size: 2rem; display: flex; align-items: center; gap: 12px;" data-i18n="true" data-en="💳 Payment Gateway" data-mr="💳 पेमेंट गेटवे">💳 पेमेंट गेटवे</h2>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 1rem;" data-i18n="true" data-en="Connect your Razorpay account to accept online payments from participants." data-mr="सहभागींकडून ऑनलाइन पेमेंट स्वीकारण्यासाठी तुमचे Razorpay खाते कनेक्ट करा.">सहभागींकडून ऑनलाइन पेमेंट स्वीकारण्यासाठी तुमचे Razorpay खाते कनेक्ट करा.</p>
+                    </div>
+                    <div id="razorpayStatusBadge" style="flex: 0 0 auto;">
+                        <span class="badge" style="background: #555; padding: 10px 20px; font-size: 1rem; border-radius: 50px;" data-i18n="true" data-en="⚪ Not Connected" data-mr="⚪ कनेक्ट नाही">⚪ कनेक्ट नाही</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid #3b82f6; margin-bottom: 30px;">
+                <div class="card-body">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                        <img src="https://razorpay.com/assets/razorpay-glyph.svg" alt="Razorpay" style="width: 36px; height: 36px; filter: brightness(1.5);" onerror="this.style.display='none'">
+                        <h3 style="color: #3b82f6; margin: 0;" data-i18n="true" data-en="Razorpay Configuration" data-mr="Razorpay कॉन्फिगरेशन">Razorpay कॉन्फिगरेशन</h3>
+                    </div>
+                    
+                    <div style="background: rgba(59,130,246,0.08); padding: 18px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0; line-height: 1.6;" data-i18n="true" data-en="Get your API keys from Razorpay Dashboard → Settings → API Keys. Use Test keys for testing and Live keys for production." data-mr="तुमच्या API keys Razorpay Dashboard → Settings → API Keys वरून मिळवा. चाचणीसाठी Test keys वापरा आणि प्रत्यक्ष उत्पादनासाठी Live keys वापरा.">तुमच्या API keys Razorpay Dashboard → Settings → API Keys वरून मिळवा. चाचणीसाठी Test keys वापरा आणि प्रत्यक्ष उत्पादनासाठी Live keys वापरा.</p>
+                    </div>
+
+                    <form onsubmit="handleSaveRazorpay(event)">
+                        <div class="form-group" style="max-width: 500px; margin-bottom: 20px;">
+                            <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                <span data-i18n="true" data-en="Razorpay Key ID" data-mr="Razorpay Key ID">Razorpay Key ID</span>
+                            </label>
+                            <input type="text" id="razorpayKeyId" class="form-control" placeholder="rzp_test_xxxxxxxxxxxx" required style="font-family: monospace; letter-spacing: 0.5px;">
+                        </div>
+                        <div class="form-group" style="max-width: 500px; margin-bottom: 20px;">
+                            <label style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                <span data-i18n="true" data-en="Razorpay Key Secret" data-mr="Razorpay Key Secret">Razorpay Key Secret</span>
+                            </label>
+                            <input type="password" id="razorpayKeySecret" class="form-control" placeholder="••••••••••••••••" required style="font-family: monospace; letter-spacing: 0.5px;">
+                            <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px; display: block;" data-i18n="true" data-en="⚠️ Your Key Secret is stored securely on the server and never exposed to the frontend." data-mr="⚠️ तुमची Key Secret सर्व्हरवर सुरक्षितपणे साठवली जाते आणि कधीही फ्रंटएंडला दाखवली जात नाही.">⚠️ तुमची Key Secret सर्व्हरवर सुरक्षितपणे साठवली जाते आणि कधीही फ्रंटएंडला दाखवली जात नाही.</small>
+                        </div>
+                        <div class="form-group" style="max-width: 500px; margin-bottom: 25px;">
+                            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                                <input type="checkbox" id="razorpayEnabled" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #3b82f6;">
+                                <span style="color: var(--text-light); font-size: 1rem;" data-i18n="true" data-en="Enable Razorpay Payments (Live Mode)" data-mr="Razorpay पेमेंट सक्षम करा (लाईव्ह मोड)">Razorpay पेमेंट सक्षम करा (लाईव्ह मोड)</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnSaveRazorpay" style="background: #3b82f6; padding: 12px 30px; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            <span data-i18n="true" data-en="Save & Connect" data-mr="सेव्ह करा आणि कनेक्ट करा">सेव्ह करा आणि कनेक्ट करा</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid rgba(255,255,255,0.1);">
+                <div class="card-body">
+                    <h3 style="color: var(--text-muted); margin-bottom: 15px;" data-i18n="true" data-en="How It Works" data-mr="हे कसे काम करते">हे कसे काम करते</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">1️⃣</div>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="true" data-en="Enter your Razorpay Key ID and Secret above" data-mr="वर तुमचा Razorpay Key ID आणि Secret टाका">वर तुमचा Razorpay Key ID आणि Secret टाका</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">2️⃣</div>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="true" data-en="Click Save & Connect to activate" data-mr="सक्रिय करण्यासाठी सेव्ह आणि कनेक्ट क्लिक करा">सक्रिय करण्यासाठी सेव्ह आणि कनेक्ट क्लिक करा</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">3️⃣</div>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="true" data-en="Participants pay via UPI/Card/NetBanking during registration" data-mr="नोंदणी दरम्यान सहभागी UPI/कार्ड/नेटबँकिंग द्वारे पेमेंट करतात">नोंदणी दरम्यान सहभागी UPI/कार्ड/नेटबँकिंग द्वारे पेमेंट करतात</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Publish Results Modal -->
+    <div id="resultsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeResultsModal()">&times;</span>
+            <h2 class="text-primary" style="margin-bottom: 20px;" data-i18n="true" data-en="Publish Winners" data-mr="विजेते जाहीर करा">विजेते जाहीर करा</h2>
+            <form onsubmit="handlePublishResults(event)">
+                <div class="form-group">
+                    <label data-i18n="true" data-en="1st Place (Name/TKT)" data-mr="प्रथम विजेता (नाव किंवा तिकीट आयडी)">प्रथम विजेता (नाव किंवा तिकीट आयडी)</label>
+                    <input type="text" id="resWinner" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="2nd Place (Name/TKT)" data-mr="द्वितीय विजेता (नाव किंवा तिकीट आयडी)">द्वितीय विजेता (नाव किंवा तिकीट आयडी)</label>
+                    <input type="text" id="resRunnerUp" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="true" data-en="3rd Place (Optional)" data-mr="तृतीय विजेता (नाव किंवा तिकीट आयडी, पर्यायी)">तृतीय विजेता (नाव किंवा तिकीट आयडी, पर्यायी)</label>
+                    <input type="text" id="resThirdPlace" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;" data-i18n="true" data-en="Publish to Public" data-mr="निकाल जाहीर करा">निकाल जाहीर करा</button>
+            </form>
+        </div>
+    </div> <!-- End of results modal -->
+</div> <!-- End of protected-admin-content -->
+
+    <script>
+    function toggleAdminSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const hamburger = document.getElementById('adminHamburger');
+        const overlay = document.getElementById('adminOverlay');
+        const isOpen = sidebar.classList.contains('open');
+        if (isOpen) {
+            sidebar.classList.remove('open');
+            hamburger.classList.remove('active');
+            overlay.classList.remove('visible');
+        } else {
+            sidebar.style.display = 'block'; // ensure visible
+            sidebar.classList.add('open');
+            hamburger.classList.add('active');
+            overlay.classList.add('visible');
+        }
+    }
+    function closeAdminSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const hamburger = document.getElementById('adminHamburger');
+        const overlay = document.getElementById('adminOverlay');
+        sidebar.classList.remove('open');
+        hamburger.classList.remove('active');
+        overlay.classList.remove('visible');
+    }
+    </script>
+    <script src="lang.js?v=2"></script>
+    <script src="admin.js?v=2.2"></script>
+</body>
+</html>
